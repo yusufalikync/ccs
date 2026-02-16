@@ -1,6 +1,6 @@
-# claude-code-usage-statusline
+# Claude Code Statusline
 
-Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
+**C**laude **C**ode **S**tatusline(ccs):  Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
 
 ```text
 [Opus 4.6] 📁 my-project | $0.3595
@@ -9,8 +9,7 @@ Real-time usage stats in Claude Code's status line — see your session limit, w
 
 The status line uses ANSI colors to indicate usage levels: green (<70%), yellow (70-89%), and red (>=90%).
 
-<!-- TODO: Gerçek screenshot ekle -->
-<!-- ![screenshot](./docs/screenshot.png) -->
+![screenshot](./docs/pic/screenshot.png)
 
 ## Quick Start
 
@@ -128,4 +127,4 @@ This removes `~/.claude/statusline.sh` and deletes the `statusLine` key from `~/
 
 ## License
 
-MIT
+[MIT](./LICENSE)
