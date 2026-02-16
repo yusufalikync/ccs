@@ -14,7 +14,7 @@ The status line uses ANSI colors to indicate usage levels: green (<70%), yellow 
 ## Quick Start
 
 ```bash
-npx claude-code-usage-statusline install
+npx claude-code-statusline install
 ```
 
 That's it. Restart Claude Code and the status line appears.
@@ -35,14 +35,14 @@ That's it. Restart Claude Code and the status line appears.
 ### Option 1: npx (no global install)
 
 ```bash
-npx claude-code-usage-statusline install
+npx claude-code-statusline install
 ```
 
 ### Option 2: Global install
 
 ```bash
-npm install -g claude-code-usage-statusline
-ccus install
+npm install -g claude-code-statusline
+ccs install
 ```
 
 ### What happens during install
@@ -56,12 +56,12 @@ ccus install
 ## Usage
 
 ```bash
-ccus install      # Install script & configure settings
-ccus uninstall    # Remove script & clean up settings
-ccus status       # Check if statusline is active
+ccs install      # Install script & configure settings
+ccs uninstall    # Remove script & clean up settings
+ccs status       # Check if statusline is active
 ```
 
-`ccus` and `claude-code-usage-statusline` are interchangeable.
+`ccs` and `claude-code-statusline` are interchangeable.
 
 ## What It Shows
 
@@ -105,7 +105,7 @@ The script caches API responses at `/tmp/claude_usage_cache_<session_id>.json` (
 ## Uninstalling
 
 ```bash
-ccus uninstall
+ccs uninstall
 ```
 
 This removes `~/.claude/statusline.sh` and deletes the `statusLine` key from `~/.claude/settings.json` (with backup). No other settings are modified.
@@ -123,7 +123,7 @@ This removes `~/.claude/statusline.sh` and deletes the `statusLine` key from `~/
 | Usage data not showing | Make sure you're logged in via OAuth (`claude` command), not API key |
 | `jq: command not found` | `brew install jq` |
 | Stale data | Delete `/tmp/claude_usage_cache_*.json` to force a fresh API call |
-| Status line not appearing | Run `ccus status` to check, then restart Claude Code |
+| Status line not appearing | Run `ccs status` to check, then restart Claude Code |
 
 ## License
 

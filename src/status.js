@@ -14,14 +14,14 @@ export function status() {
     console.log("Status: PARTIAL");
     console.log(`  Script: ${SCRIPT_DEST} (exists)`);
     console.log("  settings.json: statusLine NOT configured");
-    console.log('  Run "ccus install" to fix.');
+    console.log('  Run "ccs install" to fix.');
   } else if (!scriptExists && settingsOk) {
     console.log("Status: PARTIAL");
     console.log("  Script: NOT found");
     console.log("  settings.json: statusLine configured (but script missing)");
-    console.log('  Run "ccus install" to fix.');
+    console.log('  Run "ccs install" to fix.');
   } else {
     console.log("Status: NOT INSTALLED");
-    console.log('  Run "ccus install" to set up.');
+    console.log('  Run "ccs install" to set up.');
   }
 }

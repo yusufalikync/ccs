@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-An npm package (`claude-code-usage-statusline`, alias `ccus`) that installs a bash script into `~/.claude/` and configures Claude Code's `settings.json` to display real-time usage stats (context %, session %, weekly %, cost) in the status line. The npm layer is purely an installer/manager — the actual work happens in the bash script.
+An npm package (`claude-code-statusline`, alias `ccs`) that installs a bash script into `~/.claude/` and configures Claude Code's `settings.json` to display real-time usage stats (context %, session %, weekly %, cost) in the status line. The npm layer is purely an installer/manager — the actual work happens in the bash script.
 
 ## Commands
 

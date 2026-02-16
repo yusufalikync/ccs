@@ -1,11 +1,11 @@
 {
-  "name": "claude-code-usage-statusline",
+  "name": "claude-code-statusline",
   "version": "1.0.0",
   "description": "Real-time usage stats (session %, weekly %, remaining time) in Claude Code's status line",
   "type": "module",
   "bin": {
-    "claude-code-usage-statusline": "bin/cli.js",
-    "ccus": "bin/cli.js"
+    "claude-code-statusline": "bin/cli.js",
+    "ccs": "bin/cli.js"
   },
   "files": [
     "bin/",

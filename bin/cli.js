@@ -19,12 +19,12 @@ switch (command) {
     break;
   }
   default:
-    console.log(`claude-code-usage-statusline — Usage stats in Claude Code's status line
+    console.log(`claude-code-statusline — Usage stats in Claude Code's status line
 
 Usage:
-  ccus install      Install the statusline script & configure settings.json
-  ccus uninstall    Remove the script & clean up settings.json
-  ccus status       Check if the statusline is active`);
+  ccs install      Install the statusline script & configure settings.json
+  ccs uninstall    Remove the script & clean up settings.json
+  ccs status       Check if the statusline is active`);
     if (command && command !== "help" && command !== "--help" && command !== "-h") {
       process.exit(1);
     }

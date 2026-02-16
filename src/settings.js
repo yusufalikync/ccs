@@ -5,7 +5,7 @@ import { SETTINGS_PATH, CLAUDE_DIR, STATUSLINE_COMMAND } from "./paths.js";
 function backup(filePath) {
   if (!existsSync(filePath)) return;
   const timestamp = Date.now();
-  const backupPath = `${filePath}.ccus-backup.${timestamp}`;
+  const backupPath = `${filePath}.ccs-backup.${timestamp}`;
   writeFileSync(backupPath, readFileSync(filePath));
   console.log(`  Backup: ${backupPath}`);
 }
