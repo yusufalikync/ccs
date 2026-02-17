@@ -95,7 +95,7 @@ GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to main, PRs | Smoke tests on 3 OS (ubuntu, macos, windows) x 3 Node versions (18, 20, 22) |
+| `ci.yml` | Push to main, PRs | Smoke tests on ubuntu with Node 18 (minimum supported version) |
 | `publish.yml` | Tag `v*` push | Run tests → verify package → `npm publish --provenance` (requires `NPM_TOKEN` secret, see [setup guide](docs/npm-publish-setup.md)) |
 | `package-audit.yml` | PRs | Verify package contents, zero-dep policy, and engine constraint |
 
