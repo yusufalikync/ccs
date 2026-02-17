@@ -1,13 +1,17 @@
 # Claude Code Statusline
 
-**C**laude **C**ode **S**tatusline(ccs):  Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
+[![CI](https://github.com/yusufalikync/ccs/actions/workflows/ci.yml/badge.svg)](https://github.com/yusufalikync/ccs/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/claude-code-statusline.svg)](https://www.npmjs.com/package/claude-code-statusline)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+**C**laude **C**ode **S**tatusline (ccs): Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
 
 ```text
-[Opus 4.6] 📁 my-project | $0.3595
-▓▓▓▓░░░░░░░░░░░░░░░░ ctx 20% | sess: ▓▓▓▓▓▓▓▓░░ 88% 3h24m | week: ▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░ 63% 2d10h
+[Claude Opus 4.6] 📁 my-project | $0.3595
+▓▓▓▓░░░░░░░░░░░░░░░░ ctx 20% | sess: ▓▓▓▓▓▓▓▓░░ 75% 3h19m | week: ▓▓▓▓▓▓▓░░░░░░░░░░░░░ 34% 3d20h
 ```
 
-The status line uses ANSI colors to indicate usage levels: green (<70%), yellow (70-89%), and red (>=90%).
+Progress bars are color-coded: green (<70%), yellow (70-89%), red (>=90%).
 
 ![screenshot](./docs/pic/screenshot.png)
 
@@ -26,6 +30,8 @@ That's it. Restart Claude Code and the status line appears.
 | **OS** | macOS, Linux, Windows |
 | **Claude Code** | Logged in via OAuth — Pro or Max plan |
 | **Node.js** | >= 18 |
+
+> Zero external dependencies — uses only Node.js built-ins.
 
 ## Installation
 
@@ -67,7 +73,7 @@ ccs status       # Check if statusline is active
 
 | Segment | Description |
 |---------|-------------|
-| `[Opus 4.6]` | Active model (cyan) |
+| `[Claude Opus 4.6]` | Active model (cyan) |
 | `📁 my-project` | Current workspace folder |
 | `$0.3595` | Current session cost (yellow) |
 
@@ -76,8 +82,8 @@ ccs status       # Check if statusline is active
 | Segment | Description |
 |---------|-------------|
 | `▓▓▓▓░░░░ ctx 20%` | Context window usage with color-coded progress bar |
-| `sess: 88% 3h24m` | 5-hour rolling window utilization + time until reset |
-| `week: 63% 2d10h` | 7-day rolling window utilization + time until reset |
+| `sess: 75% 3h19m` | 5-hour rolling window utilization + time until reset |
+| `week: 34% 3d20h` | 7-day rolling window utilization + time until reset |
 
 Progress bars are color-coded: green (<70%), yellow (70-89%), red (>=90%). If usage data is unavailable, line 2 shows only the context bar.
 
@@ -129,6 +135,21 @@ This removes `~/.claude/statusline.js` and deletes the `statusLine` key from `~/
 | Usage data not showing | Make sure you're logged in via OAuth (`claude` command), not API key |
 | Stale data | Delete `<tmpdir>/claude_usage_cache_*.json` to force a fresh API call |
 | Status line not appearing | Run `ccs status` to check, then restart Claude Code |
+
+## Contributing
+
+```bash
+git clone https://github.com/yusufalikync/ccs.git
+cd ccs
+npm test              # Run smoke tests
+node bin/cli.js install   # Test install locally
+```
+
+See [CLAUDE.md](./CLAUDE.md) for architecture details and coding conventions.
+
+## Author
+
+**Yusuf Ali Koyuncu** — [GitHub](https://github.com/yusufalikync)
 
 ## License
 
