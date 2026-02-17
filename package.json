@@ -26,9 +26,17 @@
     "usage",
     "anthropic"
   ],
+  "author": {
+    "name": "Yusuf Ali Koyuncu",
+    "url": "https://github.com/yusufalikync"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/yusufalikync/ccs.git"
+  },
+  "homepage": "https://github.com/yusufalikync/ccs#readme",
+  "bugs": {
+    "url": "https://github.com/yusufalikync/ccs/issues"
   }
 }
