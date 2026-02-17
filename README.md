@@ -13,7 +13,7 @@
 
 Progress bars are color-coded: green (<70%), yellow (70-89%), red (>=90%).
 
-![screenshot](./docs/pic/screenshot.png)
+![screenshot](./docs/pic/ss.png)
 
 ## Quick Start
 
