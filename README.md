@@ -7,7 +7,7 @@
 **C**laude **C**ode **S**tatusline (ccs): Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
 
 ```text
-[Claude Opus 4.6] 📁 my-project | $0.3595
+[Opus 4.6] 📁 my-project | $0.3595
 ▓▓▓▓░░░░░░░░░░░░░░░░ ctx 20% | sess: ▓▓▓▓▓▓▓▓░░ 75% 3h19m | week: ▓▓▓▓▓▓▓░░░░░░░░░░░░░ 34% 3d20h
 ```
 
@@ -73,7 +73,7 @@ ccs status       # Check if statusline is active
 
 | Segment | Description |
 |---------|-------------|
-| `[Claude Opus 4.6]` | Active model (cyan) |
+| `[Opus 4.6]` | Active model (cyan) |
 | `📁 my-project` | Current workspace folder |
 | `$0.3595` | Current session cost (yellow) |
 
