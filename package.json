@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Real-time usage stats (session %, weekly %, remaining time) in Claude Code's status line",
   "type": "module",
+  "scripts": {
+    "test": "node scripts/smoke-test.js",
+    "prepublishOnly": "npm test"
+  },
   "bin": {
     "claude-code-statusline": "bin/cli.js",
     "ccs": "bin/cli.js"
