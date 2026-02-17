@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import { readFileSync } from "fs";
 
 const tests = [
@@ -20,7 +20,10 @@ console.log("=== Statusline Smoke Tests ===\n");
 for (const t of tests) {
   total++;
   try {
-    const output = execSync(`echo '${t.input}' | node scripts/statusline.js`, { encoding: "utf-8" });
+    const output = execFileSync("node", ["scripts/statusline.js"], {
+      input: t.input,
+      encoding: "utf-8",
+    });
     const lines = output.trim().split("\n");
     if (lines.length !== 2) throw new Error(`Expected 2 lines, got ${lines.length}`);
     console.log(`  PASS: ${t.name}`);
@@ -34,7 +37,7 @@ for (const t of tests) {
 // CLI help test
 total++;
 try {
-  execSync("node bin/cli.js help", { stdio: "pipe" });
+  execFileSync("node", ["bin/cli.js", "help"], { stdio: "pipe" });
   console.log("  PASS: CLI help");
   passed++;
 } catch {
