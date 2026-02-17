@@ -27,7 +27,7 @@ function writeSettings(settings) {
 export function hasStatusLine() {
   const settings = readSettings();
   const cmd = settings?.statusLine?.command;
-  return typeof cmd === "string" && cmd.includes("statusline.sh");
+  return typeof cmd === "string" && cmd.includes("statusline.");
 }
 
 export function addStatusLine() {
