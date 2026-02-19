@@ -1,7 +1,7 @@
 # Claude Code Statusline
 
 [![CI](https://github.com/yusufalikync/ccs/actions/workflows/ci.yml/badge.svg)](https://github.com/yusufalikync/ccs/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/claude-code-statusline.svg)](https://www.npmjs.com/package/claude-code-statusline)
+[![npm version](https://img.shields.io/npm/v/ccs-stats.svg)](https://www.npmjs.com/package/ccs-stats)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **C**laude **C**ode **S**tatusline (ccs): Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
@@ -18,7 +18,7 @@ Progress bars are color-coded: green (<70%), yellow (70-89%), red (>=90%).
 ## Quick Start
 
 ```bash
-npx claude-code-statusline install
+npx ccs-stats install
 ```
 
 That's it. Restart Claude Code and the status line appears.
@@ -27,7 +27,7 @@ That's it. Restart Claude Code and the status line appears.
 
 | Requirement | Details |
 |-------------|---------|
-| **OS** | macOS, Linux, Windows |
+| **OS** | macOS, Linux (verified), Windows (experimental) |
 | **Claude Code** | Logged in via OAuth — Pro or Max plan |
 | **Node.js** | >= 18 |
 
@@ -38,13 +38,13 @@ That's it. Restart Claude Code and the status line appears.
 ### Option 1: npx (no global install)
 
 ```bash
-npx claude-code-statusline install
+npx ccs-stats install
 ```
 
 ### Option 2: Global install
 
 ```bash
-npm install -g claude-code-statusline
+npm install -g ccs-stats
 ccs install
 ```
 
@@ -57,6 +57,16 @@ ccs install
 
 > Existing settings are preserved — only the `statusLine` key is added. Running install multiple times is safe (idempotent).
 
+### Updating
+
+Re-run install to update to the latest version:
+
+```bash
+npx ccs-stats install
+```
+
+This overwrites `~/.claude/statusline.js` with the latest script while leaving your other settings untouched.
+
 ## Usage
 
 ```bash
@@ -65,7 +75,7 @@ ccs uninstall    # Remove script & clean up settings
 ccs status       # Check if statusline is active
 ```
 
-`ccs` and `claude-code-statusline` are interchangeable.
+`ccs` and `ccs-stats` are interchangeable.
 
 ## What It Shows
 
@@ -106,8 +116,10 @@ The script caches API responses at `<tmpdir>/claude_usage_cache_<session_id>.jso
 OAuth token is read in priority order:
 
 1. `CLAUDE_CODE_OAUTH_TOKEN` environment variable
-2. `~/.claude/.credentials.json` file (primary on Linux/Windows)
-3. macOS Keychain via `security` command (fallback — macOS removes the credentials file after login)
+2. `~/.claude/.credentials.json` file — primary on Linux; present on macOS and Windows when available
+3. macOS Keychain via `security` command — fallback when macOS removes the credentials file after login
+
+> Verified on macOS and Linux. Windows credential access is experimental.
 
 ### API Details
 
@@ -127,13 +139,15 @@ This removes `~/.claude/statusline.js` and deletes the `statusLine` key from `~/
 
 - **OAuth login only** — API key authentication does not have access to the usage endpoint.
 - **Beta header may change** — `anthropic-beta: oauth-2025-04-20` could be updated by Anthropic in the future. If the status line stops showing usage data, check for an updated version of this package.
+- **Windows support is experimental** — credential access on Windows has not been verified. macOS and Linux are tested.
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | Usage data not showing | Make sure you're logged in via OAuth (`claude` command), not API key |
-| Stale data | Delete `<tmpdir>/claude_usage_cache_*.json` to force a fresh API call |
+| Usage data not showing on Windows | Credential access is experimental on Windows; try setting the `CLAUDE_CODE_OAUTH_TOKEN` env var manually |
+| Stale data | Delete `/tmp/claude_usage_cache_*.json` (macOS/Linux) or `%TEMP%\claude_usage_cache_*.json` (Windows) |
 | Status line not appearing | Run `ccs status` to check, then restart Claude Code |
 
 ## Contributing

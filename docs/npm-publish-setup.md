@@ -1,6 +1,6 @@
 # npm Publish Setup Guide
 
-How to set up automated npm publishing for `claude-code-statusline`.
+How to set up automated npm publishing for `ccs-stats`.
 
 ## Prerequisites
 
@@ -16,7 +16,7 @@ How to set up automated npm publishing for `claude-code-statusline`.
    - **Token name**: `ccs-github-actions`
    - **Expiration**: 365 days (or your preference)
    - **Packages and scopes**: Select **Read and write**
-   - **Select packages**: Choose `claude-code-statusline` (or "All packages" if first publish)
+   - **Select packages**: Choose `ccs-stats` (or "All packages" if first publish)
 5. Click **Generate Token**
 6. **Copy the token** — you won't see it again
 
@@ -77,15 +77,15 @@ This does everything in one step: checks clean git state, runs tests, confirms v
 ## Verifying
 
 After publishing:
-- Check npm: `https://www.npmjs.com/package/claude-code-statusline`
+- Check npm: `https://www.npmjs.com/package/ccs-stats`
 - Check GitHub Actions: `https://github.com/yusufalikync/ccs/actions`
-- Test install: `npx claude-code-statusline install`
+- Test install: `npx ccs-stats install`
 
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
 | `npm ERR! 403` | Token doesn't have write access — regenerate with correct permissions |
-| `npm ERR! 402` | Package name may be taken — check `npm view claude-code-statusline` |
+| `npm ERR! 402` | Package name may be taken — check `npm view ccs-stats` |
 | GitHub Action fails | Check that `NPM_TOKEN` secret is set correctly in repo settings |
 | `npm ERR! ENEEDAUTH` | `NODE_AUTH_TOKEN` not set — verify the secret name is exactly `NPM_TOKEN` |
