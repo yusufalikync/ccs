@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync } from "child_process";
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "fs";
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, unlinkSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { tmpdir } from "os";
@@ -14,6 +14,7 @@ const tempNonGitDir = mkdtempSync(join(tmpdir(), "ccs-smoke-nongit-"));
 process.on("exit", () => {
   rmSync(tempGitDir, { recursive: true, force: true });
   rmSync(tempNonGitDir, { recursive: true, force: true });
+  try { unlinkSync(join(tmpdir(), "claude_usage_cache_smoke-usage-test.json")); } catch { /* ok if missing */ }
 });
 execFileSync("git", ["init"], { cwd: tempGitDir, stdio: "pipe" });
 execFileSync("git", ["config", "user.email", "test@test.com"], { cwd: tempGitDir, stdio: "pipe" });

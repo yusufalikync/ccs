@@ -60,7 +60,8 @@ function getOAuthToken() {
       const oauth = creds.claudeAiOauth ?? {};
       const token = oauth.accessToken ?? creds.accessToken ?? null;
       const expiresAt = oauth.expiresAt ?? creds.expiresAt ?? null;
-      if (token && (!expiresAt || expiresAt > Date.now())) return token;
+      const exp = typeof expiresAt === "number" ? expiresAt : expiresAt ? new Date(expiresAt).getTime() : null;
+      if (token && (!exp || exp > Date.now())) return token;
     }
   } catch {
     // fall through
@@ -77,7 +78,8 @@ function getOAuthToken() {
       const oauth = creds.claudeAiOauth ?? {};
       const token = oauth.accessToken ?? creds.accessToken ?? null;
       const expiresAt = oauth.expiresAt ?? creds.expiresAt ?? null;
-      return token && (!expiresAt || expiresAt > Date.now()) ? token : null;
+      const exp = typeof expiresAt === "number" ? expiresAt : expiresAt ? new Date(expiresAt).getTime() : null;
+      return token && (!exp || exp > Date.now()) ? token : null;
     } catch {
       // no keychain entry
     }
@@ -88,6 +90,7 @@ function getOAuthToken() {
 
 // --- Usage fetch + cache ---
 const CACHE_MAX_AGE = 60;
+let _pruneDone = false;
 
 async function fetchUsage(sessionId) {
   const cachePath = join(tmpdir(), `claude_usage_cache_${sessionId}.json`);
@@ -119,15 +122,18 @@ async function fetchUsage(sessionId) {
     const data = await resp.json();
     if (!data.five_hour && !data.seven_day) return null;
     writeFileSync(cachePath, JSON.stringify(data), { mode: 0o600 });
-    // Prune stale cache files older than 24h (best-effort)
-    try {
-      const cutoff = Date.now() - 86400 * 1000;
-      for (const f of readdirSync(tmpdir())) {
-        if (!f.startsWith("claude_usage_cache_") || !f.endsWith(".json")) continue;
-        const fp = join(tmpdir(), f);
-        if (statSync(fp).mtimeMs < cutoff) unlinkSync(fp);
-      }
-    } catch { /* best-effort */ }
+    // Prune stale cache files older than 24h (best-effort, once per process)
+    if (!_pruneDone) {
+      _pruneDone = true;
+      try {
+        const cutoff = Date.now() - 86400 * 1000;
+        for (const f of readdirSync(tmpdir())) {
+          if (!f.startsWith("claude_usage_cache_") || !f.endsWith(".json")) continue;
+          const fp = join(tmpdir(), f);
+          if (statSync(fp).mtimeMs < cutoff) unlinkSync(fp);
+        }
+      } catch { /* best-effort */ }
+    }
     return data;
   } catch {
     return null;
