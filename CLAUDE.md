@@ -42,7 +42,7 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 
 **Test**: `scripts/smoke-test.js` — runs statusline with 11 mock inputs (normal, null, empty, high, overflow, zero + git repo, dirty state, detached HEAD, non-git dir, nonexistent dir), verifies 2-line output and content (model name, cost format, progress bar chars); injects a mock cache file to test sess/week bar rendering; checks CLI help; ensures no `console.log` in statusline.js. All paths are `__dirname`-relative — safe to run from any cwd.
 
-**Release**: `scripts/release.sh` — verifies clean git state → `npm pack --dry-run` → confirms version → `npm publish` (triggers `prepublishOnly` → tests) → `git tag` → `git push` → `git push --tags`.
+**Release**: `scripts/release.sh` — verifies clean git state → `npm test` → `npm pack --dry-run` → confirms version → `npm publish` (triggers `prepublishOnly` → tests again) → `git tag` → `git push` → `git push --tags`.
 
 **Uninstall**: deletes the script → removes `statusLine` key from settings (with backup).
 
