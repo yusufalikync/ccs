@@ -1,4 +1,4 @@
-# claude-code-statusline (ccs)
+# ccs-stats (ccs)
 
 npm package that installs a Node.js statusline script into `~/.claude/` and configures `settings.json` to display real-time usage stats (context %, session %, weekly %, cost). The npm layer is the installer — the actual work happens in `scripts/statusline.js`.
 
@@ -26,13 +26,13 @@ npm publish
 bash scripts/release.sh
 ```
 
-There are no build steps and no linter configured. Smoke tests run via `npm test` (13 tests in `scripts/smoke-test.js`). `prepublishOnly` runs tests automatically before `npm publish`.
+There are no build steps and no linter configured. Smoke tests run via `npm test` (14 tests in `scripts/smoke-test.js`). `prepublishOnly` runs tests automatically before `npm publish`.
 
 ## Architecture
 
 - **ES Modules** (`"type": "module"`) — all `.js` files use `import`/`export`
 - **Zero dependencies** — only Node.js built-ins (fs, os, path, child_process, url)
-- **Cross-platform** — macOS, Linux, Windows; only credential access differs per platform
+- **Cross-platform** — macOS and Linux (verified); Windows experimental (credential access unverified)
 
 ### Flow
 
@@ -40,9 +40,9 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 
 **Install**: `src/check-deps.js` (verifies Node >= 18) → copies `scripts/statusline.js` to `~/.claude/statusline.js` → cleans up old `statusline.sh` if present → `settings.js` merges `statusLine` key into `~/.claude/settings.json` (with timestamped backup).
 
-**Test**: `scripts/smoke-test.js` — runs statusline with 11 mock inputs (normal, null, empty, high, overflow, zero + git repo, dirty state, detached HEAD, non-git dir, nonexistent dir), verifies 2-line output, checks CLI help, and ensures no `console.log` in statusline.js.
+**Test**: `scripts/smoke-test.js` — runs statusline with 11 mock inputs (normal, null, empty, high, overflow, zero + git repo, dirty state, detached HEAD, non-git dir, nonexistent dir), verifies 2-line output and content (model name, cost format, progress bar chars); injects a mock cache file to test sess/week bar rendering; checks CLI help; ensures no `console.log` in statusline.js. All paths are `__dirname`-relative — safe to run from any cwd.
 
-**Release**: `scripts/release.sh` — verifies clean git state → runs `npm test` → `npm pack --dry-run` → confirms version → `npm publish` → `git tag` → `git push --tags`.
+**Release**: `scripts/release.sh` — verifies clean git state → `npm pack --dry-run` → confirms version → `npm publish` (triggers `prepublishOnly` → tests) → `git tag` → `git push` → `git push --tags`.
 
 **Uninstall**: deletes the script → removes `statusLine` key from settings (with backup).
 
@@ -60,8 +60,16 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 - `getGitInfo()` runs `git rev-parse` + `git status --porcelain --untracked-files=no` per response; returns `null` outside git repos (branch section hidden automatically)
 - `getGitInfo()` detached HEAD falls back to `git rev-parse --short HEAD` (short commit hash)
 - `getGitInfo()` all `execSync` calls have `timeout: 3000` to prevent hangs on network-mounted paths
+- macOS `security` keychain call also has `timeout: 3000` — locked Keychain would otherwise block indefinitely
 - `path.basename(dir)` used for folder extraction — cross-platform safe (replaces manual split)
+- `homedir()` from `os` used for credentials path — more reliable than `HOME`/`USERPROFILE` env chain
+- `getOAuthToken()` checks `expiresAt` on credentials — skips expired tokens rather than attempting a doomed API call
 - JSON.parse on stdin wrapped in try/catch with `{}` fallback — safe against malformed input
+- `cost` coerced with `Number()` — prevents `toFixed()` crash if API sends cost as a string
+- `fetchUsage()` checks `resp.ok` before calling `resp.json()` — non-2xx responses (401/403/500) return `null` silently
+- `fetchUsage()` prunes cache files older than 24h on each cache write — prevents unbounded tmpdir growth
+- `backup()` in `settings.js` is wrapped in try/catch at call sites — disk-full/permission errors log a warning instead of crashing install
+- `bin/cli.js` unknown commands print `Error: unknown command 'X'` and exit 1 — help text only shown for `help`/`--help`/`-h`
 
 ### statusline.js Input/Output
 
@@ -75,15 +83,15 @@ Progress bars color-coded via `colorForPct()`: green (<70%), yellow (70-89%), re
 
 **Usage API**: Fetches `GET https://api.anthropic.com/api/oauth/usage` with OAuth token from platform credential store, requires header `anthropic-beta: oauth-2025-04-20`.
 
-**Credential access**: priority order: `CLAUDE_CODE_OAUTH_TOKEN` env var → `~/.claude/.credentials.json` file (Linux/Windows primary) → macOS Keychain (`security`, fallback since macOS deletes the file after login).
+**Credential access**: priority order: `CLAUDE_CODE_OAUTH_TOKEN` env var → `~/.claude/.credentials.json` file (primary on Linux; present on macOS and Windows when available) → macOS Keychain (`security`, fallback since macOS deletes the file after login). Verified on macOS and Linux; Windows experimental.
 
-**Cache**: Isolated per session at `<tmpdir>/claude_usage_cache_<session_id>.json` with 60s TTL. Null values have safe fallbacks (MODEL→"?", COST→0, USED_PCT→0).
+**Cache**: Isolated per session at `<tmpdir>/claude_usage_cache_<session_id>.json` with 60s TTL. Stale files older than 24h are pruned on each cache write. Null values have safe fallbacks (MODEL→"?", COST→0, USED_PCT→0).
 
 ## Rules
 
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`, `test:`
 - No `console.log` in `scripts/statusline.js` — use `process.stdout.write()` instead
-- Do not create unnecessary files (CHANGELOG, CONTRIBUTING, TODO, etc.)
+- Do not create unnecessary files (CHANGELOG, CONTRIBUTING, etc.)
 - No hardcoded paths — use `src/paths.js` for all path constants
 
 ## Gotchas
@@ -102,7 +110,7 @@ GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to main, PRs | Smoke tests on ubuntu with Node 18 (minimum supported version) |
+| `ci.yml` | Push to main, PRs | Smoke tests + install/uninstall cycle on ubuntu + macOS with Node 18, 20, 22 matrix (6 jobs) |
 | `publish.yml` | Tag `v*` push | Run tests → verify package → `npm publish --provenance` (requires `NPM_TOKEN` secret, see [setup guide](docs/npm-publish-setup.md)) |
 | `package-audit.yml` | PRs | Verify package contents, zero-dep policy, and engine constraint |
 
