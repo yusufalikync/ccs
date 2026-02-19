@@ -19,13 +19,14 @@ switch (command) {
     break;
   }
   default:
-    console.log(`claude-code-statusline — Usage stats in Claude Code's status line
+    if (command && command !== "help" && command !== "--help" && command !== "-h") {
+      console.error(`Error: unknown command '${command}'`);
+      process.exit(1);
+    }
+    console.log(`ccs-stats — Usage stats in Claude Code's status line
 
 Usage:
   ccs install      Install the statusline script & configure settings.json
   ccs uninstall    Remove the script & clean up settings.json
   ccs status       Check if the statusline is active`);
-    if (command && command !== "help" && command !== "--help" && command !== "-h") {
-      process.exit(1);
-    }
 }

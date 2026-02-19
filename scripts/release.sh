@@ -30,6 +30,7 @@ echo ""
 # 5. Publish
 npm publish
 git tag "v${VERSION}"
+git push
 git push --tags
 
 echo ""

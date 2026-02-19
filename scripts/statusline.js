@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { execSync } from "child_process";
-import { readFileSync, writeFileSync, statSync, existsSync } from "fs";
-import { tmpdir } from "os";
+import { readFileSync, writeFileSync, statSync, existsSync, readdirSync, unlinkSync } from "fs";
+import { tmpdir, homedir } from "os";
 import { join, basename } from "path";
 
 // --- ANSI color codes ---
@@ -54,16 +54,14 @@ function getOAuthToken() {
 
   // 2. Credentials file (Linux/Windows primary, macOS sometimes)
   try {
-    const credsPath = join(
-      process.env.HOME || process.env.USERPROFILE || "",
-      ".claude",
-      ".credentials.json"
-    );
+    const credsPath = join(homedir(), ".claude", ".credentials.json");
     if (existsSync(credsPath)) {
       const creds = JSON.parse(readFileSync(credsPath, "utf-8"));
-      const token =
-        creds.claudeAiOauth?.accessToken ?? creds.accessToken ?? null;
-      if (token) return token;
+      const oauth = creds.claudeAiOauth ?? {};
+      const token = oauth.accessToken ?? creds.accessToken ?? null;
+      const expiresAt = oauth.expiresAt ?? creds.expiresAt ?? null;
+      const exp = typeof expiresAt === "number" ? expiresAt : expiresAt ? new Date(expiresAt).getTime() : null;
+      if (token && (!exp || exp > Date.now())) return token;
     }
   } catch {
     // fall through
@@ -74,10 +72,14 @@ function getOAuthToken() {
     try {
       const credsJson = execSync(
         'security find-generic-password -s "Claude Code-credentials" -w',
-        { stdio: ["pipe", "pipe", "pipe"] }
+        { stdio: ["pipe", "pipe", "pipe"], timeout: 3000 }
       ).toString();
       const creds = JSON.parse(credsJson);
-      return creds.claudeAiOauth?.accessToken ?? creds.accessToken ?? null;
+      const oauth = creds.claudeAiOauth ?? {};
+      const token = oauth.accessToken ?? creds.accessToken ?? null;
+      const expiresAt = oauth.expiresAt ?? creds.expiresAt ?? null;
+      const exp = typeof expiresAt === "number" ? expiresAt : expiresAt ? new Date(expiresAt).getTime() : null;
+      return token && (!exp || exp > Date.now()) ? token : null;
     } catch {
       // no keychain entry
     }
@@ -88,6 +90,7 @@ function getOAuthToken() {
 
 // --- Usage fetch + cache ---
 const CACHE_MAX_AGE = 60;
+let _pruneDone = false;
 
 async function fetchUsage(sessionId) {
   const cachePath = join(tmpdir(), `claude_usage_cache_${sessionId}.json`);
@@ -115,9 +118,22 @@ async function fetchUsage(sessionId) {
       },
       signal: AbortSignal.timeout(5000),
     });
+    if (!resp.ok) return null;
     const data = await resp.json();
-    if (!data.five_hour) return null;
+    if (!data.five_hour && !data.seven_day) return null;
     writeFileSync(cachePath, JSON.stringify(data), { mode: 0o600 });
+    // Prune stale cache files older than 24h (best-effort, once per process)
+    if (!_pruneDone) {
+      _pruneDone = true;
+      try {
+        const cutoff = Date.now() - 86400 * 1000;
+        for (const f of readdirSync(tmpdir())) {
+          if (!f.startsWith("claude_usage_cache_") || !f.endsWith(".json")) continue;
+          const fp = join(tmpdir(), f);
+          if (statSync(fp).mtimeMs < cutoff) unlinkSync(fp);
+        }
+      } catch { /* best-effort */ }
+    }
     return data;
   } catch {
     return null;
@@ -169,7 +185,7 @@ try {
 
 // --- Parse input ---
 const model = input.model?.display_name ?? "?";
-const cost = input.cost?.total_cost_usd ?? 0;
+const cost = Number(input.cost?.total_cost_usd ?? 0);
 const usedPct = Math.floor(input.context_window?.used_percentage ?? 0);
 const dir = input.workspace?.current_dir ?? "";
 const sessionId = input.session_id ?? "default";

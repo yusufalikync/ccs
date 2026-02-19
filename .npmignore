@@ -1,6 +1,6 @@
-claude-code-statusline.md
 .git
 .github
+.claude
 .DS_Store
 node_modules
 *.log

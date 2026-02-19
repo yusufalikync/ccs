@@ -8,14 +8,35 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Test on Node.js 18
         uses: actions/setup-node@v4
         with:
           node-version: 18
+      - run: npm test
 
-      - name: Run smoke tests
-        run: npm test
+      - name: Test on Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
+
+      - name: Test on Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+
+      - name: Test install/uninstall cycle
+        run: |
+          node bin/cli.js install
+          node bin/cli.js status | grep ACTIVE
+          node bin/cli.js uninstall
+          node bin/cli.js status | grep "NOT INSTALLED"
