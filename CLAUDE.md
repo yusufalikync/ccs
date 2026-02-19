@@ -67,7 +67,7 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 - JSON.parse on stdin wrapped in try/catch with `{}` fallback — safe against malformed input
 - `cost` coerced with `Number()` — prevents `toFixed()` crash if API sends cost as a string
 - `fetchUsage()` checks `resp.ok` before calling `resp.json()` — non-2xx responses (401/403/500) return `null` silently
-- `fetchUsage()` prunes cache files older than 24h on each cache write — prevents unbounded tmpdir growth
+- `fetchUsage()` prunes cache files older than 24h once per process (guarded by `_pruneDone` flag) — prevents unbounded tmpdir growth
 - `backup()` in `settings.js` is wrapped in try/catch at call sites — disk-full/permission errors log a warning instead of crashing install
 - `bin/cli.js` unknown commands print `Error: unknown command 'X'` and exit 1 — help text only shown for `help`/`--help`/`-h`
 
@@ -122,6 +122,12 @@ Custom agents are available in `.claude/agents/`:
 |-------|---------|
 | `senior-js-dev` | Code writing, review, and refactoring — ES Modules, cross-platform, zero-dep focused |
 | `senior-qa` | Testing, edge cases, regression — read-only, reports PASS/FAIL with mock input scenarios |
+
+## Hooks
+
+`.claude/settings.json` configures a PreToolUse hook via `.claude/hooks/pre-commit-test.sh`:
+
+- **Pre-commit test**: Runs `npm test` automatically before every `git commit` — commit is blocked if tests fail
 
 ## Skills
 
