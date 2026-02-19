@@ -26,7 +26,7 @@ npm publish
 bash scripts/release.sh
 ```
 
-There are no build steps and no linter configured. Smoke tests run via `npm test` (11 tests in `scripts/smoke-test.js`). `prepublishOnly` runs tests automatically before `npm publish`.
+There are no build steps and no linter configured. Smoke tests run via `npm test` (13 tests in `scripts/smoke-test.js`). `prepublishOnly` runs tests automatically before `npm publish`.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 
 **Install**: `src/check-deps.js` (verifies Node >= 18) → copies `scripts/statusline.js` to `~/.claude/statusline.js` → cleans up old `statusline.sh` if present → `settings.js` merges `statusLine` key into `~/.claude/settings.json` (with timestamped backup).
 
-**Test**: `scripts/smoke-test.js` — runs statusline with 6 mock inputs (normal, null, empty, high, overflow, zero), verifies 2-line output, checks CLI help, and ensures no `console.log` in statusline.js.
+**Test**: `scripts/smoke-test.js` — runs statusline with 11 mock inputs (normal, null, empty, high, overflow, zero + git repo, dirty state, detached HEAD, non-git dir, nonexistent dir), verifies 2-line output, checks CLI help, and ensures no `console.log` in statusline.js.
 
 **Release**: `scripts/release.sh` — verifies clean git state → runs `npm test` → `npm pack --dry-run` → confirms version → `npm publish` → `git tag` → `git push --tags`.
 
@@ -57,7 +57,11 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 - `settings.json` command written as `node ~/.claude/statusline.js`
 - `statusLine` config includes `padding: 2` for multi-line output spacing
 - Install auto-cleans old `statusline.sh` for backward compatibility
-- `getGitInfo()` runs `git rev-parse` + `git status --porcelain` per response; returns `null` outside git repos (branch section hidden automatically)
+- `getGitInfo()` runs `git rev-parse` + `git status --porcelain --untracked-files=no` per response; returns `null` outside git repos (branch section hidden automatically)
+- `getGitInfo()` detached HEAD falls back to `git rev-parse --short HEAD` (short commit hash)
+- `getGitInfo()` all `execSync` calls have `timeout: 3000` to prevent hangs on network-mounted paths
+- `path.basename(dir)` used for folder extraction — cross-platform safe (replaces manual split)
+- JSON.parse on stdin wrapped in try/catch with `{}` fallback — safe against malformed input
 
 ### statusline.js Input/Output
 
