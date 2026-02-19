@@ -26,7 +26,7 @@ npm publish
 bash scripts/release.sh
 ```
 
-There are no build steps and no linter configured. Smoke tests run via `npm test` (8 tests in `scripts/smoke-test.js`). `prepublishOnly` runs tests automatically before `npm publish`.
+There are no build steps and no linter configured. Smoke tests run via `npm test` (11 tests in `scripts/smoke-test.js`). `prepublishOnly` runs tests automatically before `npm publish`.
 
 ## Architecture
 
@@ -38,7 +38,7 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 
 `bin/cli.js` parses argv → dynamic-imports `src/install.js`, `src/uninstall.js`, or `src/status.js`.
 
-**Install**: `check-deps.js` (verifies Node >= 18) → copies `scripts/statusline.js` to `~/.claude/statusline.js` → cleans up old `statusline.sh` if present → `settings.js` merges `statusLine` key into `~/.claude/settings.json` (with timestamped backup).
+**Install**: `src/check-deps.js` (verifies Node >= 18) → copies `scripts/statusline.js` to `~/.claude/statusline.js` → cleans up old `statusline.sh` if present → `settings.js` merges `statusLine` key into `~/.claude/settings.json` (with timestamped backup).
 
 **Test**: `scripts/smoke-test.js` — runs statusline with 6 mock inputs (normal, null, empty, high, overflow, zero), verifies 2-line output, checks CLI help, and ensures no `console.log` in statusline.js.
 
@@ -57,13 +57,14 @@ There are no build steps and no linter configured. Smoke tests run via `npm test
 - `settings.json` command written as `node ~/.claude/statusline.js`
 - `statusLine` config includes `padding: 2` for multi-line output spacing
 - Install auto-cleans old `statusline.sh` for backward compatibility
+- `getGitInfo()` runs `git rev-parse` + `git status --porcelain` per response; returns `null` outside git repos (branch section hidden automatically)
 
 ### statusline.js Input/Output
 
 **Input**: JSON via stdin (provided by Claude Code) with fields: `model.display_name`, `cost.total_cost_usd`, `context_window.used_percentage`, `workspace.current_dir`, `session_id`.
 
 **Output**: Two-line ANSI-colored text:
-- **Line 1**: `[Model] 📁 folder | $cost` — model (cyan), workspace folder, session cost (yellow)
+- **Line 1**: `[Model] 📁 folder | ✹branch | $cost` — model (cyan), folder, git branch (green), dirty marker ✹ (purple, hidden when clean), session cost (yellow)
 - **Line 2**: `▓▓░░ ctx N% | sess: ▓▓░░ N% Xh | week: ▓▓░░ N% Xd` — context + usage bars
 
 Progress bars color-coded via `colorForPct()`: green (<70%), yellow (70-89%), red (>=90%).
@@ -88,6 +89,8 @@ Progress bars color-coded via `colorForPct()`: green (<70%), yellow (70-89%), re
 - `fetch()` requires Node >= 18 — this is why `engines.node` is set to `>=18`
 - Cache files in `tmpdir` are per-session — stale data across sessions is expected, not a bug
 - `hasStatusLine()` soft-matches `statusline.` (not `.js`) to handle upgrades from old `.sh` installs
+- `getGitInfo()` adds 2 synchronous git subprocess calls per response — keep surrounding logic minimal
+- Git branch dirty marker uses true-color ANSI (`\x1b[38;2;R;G;Bm`) — requires a truecolor terminal; degrades silently otherwise
 
 ## CI/CD
 
@@ -118,4 +121,4 @@ Dev and user skills are available in `.claude/skills/`:
 | `/dev-install [install\|uninstall\|status]` | Quick CLI command runner for local dev |
 | `/statusline-check` | Health check + troubleshooting for installed statusline |
 | `/clear-cache` | Remove usage cache files from /tmp |
-| `/verify` | Full project verification — smoke tests, CLI, code quality |
+| `/verify` | Full project verification — smoke tests, install/uninstall cycle, console.log check, `npm pack --dry-run`, no hardcoded paths |

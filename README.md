@@ -7,13 +7,13 @@
 **C**laude **C**ode **S**tatusline (ccs): Real-time usage stats in Claude Code's status line — see your session limit, weekly limit, remaining time, context usage, and cost at a glance.
 
 ```text
-[Opus 4.6] 📁 my-project | $0.3595
+[Opus 4.6] 📁 my-project | ✹main | $0.3595
 ▓▓▓▓░░░░░░░░░░░░░░░░ ctx 20% | sess: ▓▓▓▓▓▓▓▓░░ 75% 3h19m | week: ▓▓▓▓▓▓▓░░░░░░░░░░░░░ 34% 3d20h
 ```
 
 Progress bars are color-coded: green (<70%), yellow (70-89%), red (>=90%).
 
-![screenshot](./docs/pic/ss.png)
+![screenshot](./docs/pic/image.png)
 
 ## Quick Start
 
@@ -75,6 +75,7 @@ ccs status       # Check if statusline is active
 |---------|-------------|
 | `[Opus 4.6]` | Active model (cyan) |
 | `📁 my-project` | Current workspace folder |
+| `✹main` | Current git branch (green) — `✹` (purple) appears when there are uncommitted changes; hidden outside git repos |
 | `$0.3595` | Current session cost (yellow) |
 
 **Line 2 — Usage bars:**
@@ -100,13 +101,13 @@ Claude Code response
 
 The script caches API responses at `<tmpdir>/claude_usage_cache_<session_id>.json` (60-second TTL, isolated per session) to avoid hitting the API on every response.
 
-### Credential Access by Platform
+### Credential Access
 
-| Platform | Method |
-|----------|--------|
-| macOS | Keychain (`security` command) |
-| Linux | Secret Service (`secret-tool` command) |
-| Windows | Windows Credential Manager (PowerShell) |
+OAuth token is read in priority order:
+
+1. `CLAUDE_CODE_OAUTH_TOKEN` environment variable
+2. `~/.claude/.credentials.json` file (primary on Linux/Windows)
+3. macOS Keychain via `security` command (fallback — macOS removes the credentials file after login)
 
 ### API Details
 
@@ -125,7 +126,6 @@ This removes `~/.claude/statusline.js` and deletes the `statusLine` key from `~/
 ## Limitations
 
 - **OAuth login only** — API key authentication does not have access to the usage endpoint.
-- **Linux/Windows credential access** — Linux requires `secret-tool`, Windows requires PowerShell `Get-StoredCredential`. These should be verified against Claude Code's credential storage on each platform.
 - **Beta header may change** — `anthropic-beta: oauth-2025-04-20` could be updated by Anthropic in the future. If the status line stops showing usage data, check for an updated version of this package.
 
 ## Troubleshooting
