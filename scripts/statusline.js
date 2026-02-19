@@ -43,37 +43,46 @@ function timeRemaining(resetIso) {
   return `${mins}m`;
 }
 
-// --- OAuth token (platform-adaptive) ---
+// --- OAuth token ---
+// Priority: env var > credentials file > macOS Keychain
 function getOAuthToken() {
-  try {
-    let credsJson;
-    switch (process.platform) {
-      case "darwin":
-        credsJson = execSync(
-          'security find-generic-password -s "Claude Code-credentials" -w',
-          { stdio: ["pipe", "pipe", "pipe"] }
-        ).toString();
-        break;
-      case "linux":
-        credsJson = execSync(
-          'secret-tool lookup service "Claude Code-credentials"',
-          { stdio: ["pipe", "pipe", "pipe"] }
-        ).toString();
-        break;
-      case "win32":
-        credsJson = execSync(
-          "powershell -Command \"(Get-StoredCredential -Target 'Claude Code-credentials').Password\"",
-          { stdio: ["pipe", "pipe", "pipe"] }
-        ).toString();
-        break;
-      default:
-        return null;
-    }
-    const creds = JSON.parse(credsJson);
-    return creds.claudeAiOauth?.accessToken ?? creds.accessToken ?? null;
-  } catch {
-    return null;
+  // 1. Environment variable (highest priority, same as Claude Code)
+  if (process.env.CLAUDE_CODE_OAUTH_TOKEN) {
+    return process.env.CLAUDE_CODE_OAUTH_TOKEN;
   }
+
+  // 2. Credentials file (Linux/Windows primary, macOS sometimes)
+  try {
+    const credsPath = join(
+      process.env.HOME || process.env.USERPROFILE || "",
+      ".claude",
+      ".credentials.json"
+    );
+    if (existsSync(credsPath)) {
+      const creds = JSON.parse(readFileSync(credsPath, "utf-8"));
+      const token =
+        creds.claudeAiOauth?.accessToken ?? creds.accessToken ?? null;
+      if (token) return token;
+    }
+  } catch {
+    // fall through
+  }
+
+  // 3. macOS Keychain (macOS deletes the credentials file after login)
+  if (process.platform === "darwin") {
+    try {
+      const credsJson = execSync(
+        'security find-generic-password -s "Claude Code-credentials" -w',
+        { stdio: ["pipe", "pipe", "pipe"] }
+      ).toString();
+      const creds = JSON.parse(credsJson);
+      return creds.claudeAiOauth?.accessToken ?? creds.accessToken ?? null;
+    } catch {
+      // no keychain entry
+    }
+  }
+
+  return null;
 }
 
 // --- Usage fetch + cache ---
