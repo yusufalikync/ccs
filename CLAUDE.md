@@ -110,7 +110,7 @@ GitHub Actions workflows in `.github/workflows/`:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| `ci.yml` | Push to main, PRs | Smoke tests + install/uninstall cycle on ubuntu + macOS with Node 18, 20, 22 matrix (6 jobs) |
+| `ci.yml` | Push to main, PRs | Smoke tests + install/uninstall cycle on ubuntu + macOS (2 jobs); each job tests Node 18 → 20 → 22 sequentially |
 | `publish.yml` | Tag `v*` push | Run tests → verify package → `npm publish --provenance` (requires `NPM_TOKEN` secret, see [setup guide](docs/npm-publish-setup.md)) |
 | `package-audit.yml` | PRs | Verify package contents, zero-dep policy, and engine constraint |
 
