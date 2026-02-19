@@ -35,7 +35,7 @@ export function addStatusLine() {
     console.log("  settings.json already has statusLine — skipping.");
     return;
   }
-  backup(SETTINGS_PATH);
+  try { backup(SETTINGS_PATH); } catch { console.log("  Warning: could not create backup, continuing."); }
   const settings = readSettings();
   settings.statusLine = {
     type: "command",
@@ -51,7 +51,7 @@ export function removeStatusLine() {
     console.log("  settings.json does not have statusLine — skipping.");
     return;
   }
-  backup(SETTINGS_PATH);
+  try { backup(SETTINGS_PATH); } catch { console.log("  Warning: could not create backup, continuing."); }
   const settings = readSettings();
   delete settings.statusLine;
   writeSettings(settings);
