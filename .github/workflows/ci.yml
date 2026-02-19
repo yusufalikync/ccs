@@ -13,17 +13,26 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        node-version: [18, 20, 22]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Test on Node.js 18
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18
+      - run: npm test
 
-      - name: Run smoke tests
-        run: npm test
+      - name: Test on Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
+
+      - name: Test on Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
 
       - name: Test install/uninstall cycle
         run: |
