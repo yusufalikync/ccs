@@ -70,7 +70,7 @@ Progress bars color-coded via `colorForPct()`: green (<70%), yellow (70-89%), re
 
 **Usage API**: Fetches `GET https://api.anthropic.com/api/oauth/usage` with OAuth token from platform credential store, requires header `anthropic-beta: oauth-2025-04-20`.
 
-**Credential access**: macOS → Keychain (`security`), Linux → Secret Service (`secret-tool`), Windows → PowerShell (`Get-StoredCredential`).
+**Credential access**: priority order: `CLAUDE_CODE_OAUTH_TOKEN` env var → `~/.claude/.credentials.json` file (Linux/Windows primary) → macOS Keychain (`security`, fallback since macOS deletes the file after login).
 
 **Cache**: Isolated per session at `<tmpdir>/claude_usage_cache_<session_id>.json` with 60s TTL. Null values have safe fallbacks (MODEL→"?", COST→0, USED_PCT→0).
 
