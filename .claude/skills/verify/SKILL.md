@@ -35,7 +35,7 @@ Grep `scripts/statusline.js` for `console.log`. It must NOT contain any — only
 ```bash
 npm pack --dry-run
 ```
-Verify these are included: `bin/cli.js`, `src/`, `scripts/statusline.js`. Verify `scripts/smoke-test.js` is also included (needed for `npm test`).
+Verify these are included: `bin/cli.js`, `src/`, `scripts/statusline.js`. Verify `scripts/smoke-test.js` is NOT included (excluded by design — only `scripts/statusline.js` is in the package).
 
 ### 5. No hardcoded paths
 Grep `src/` files for hardcoded `~/.claude` or `/tmp/` paths. All paths should come from `src/paths.js` or `os.tmpdir()`.

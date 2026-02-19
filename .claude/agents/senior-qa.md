@@ -1,6 +1,6 @@
 ---
 name: senior-qa
-description: Senior QA engineer for testing, finding bugs, and validating edge cases. Use after code changes to verify correctness, or proactively when debugging issues.
+description: Senior QA engineer for testing, finding bugs, and validating edge cases. Use proactively BEFORE committing code changes, or when debugging issues. Running QA before commit prevents review/fix cycles later.
 tools: Read, Bash, Grep, Glob
 model: inherit
 ---
