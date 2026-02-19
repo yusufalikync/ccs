@@ -3,7 +3,7 @@
 import { execSync } from "child_process";
 import { readFileSync, writeFileSync, statSync, existsSync } from "fs";
 import { tmpdir } from "os";
-import { join } from "path";
+import { join, basename } from "path";
 
 // --- ANSI color codes ---
 const COLORS = {
@@ -11,6 +11,7 @@ const COLORS = {
   yellow: "\x1b[33m",
   red: "\x1b[31m",
   cyan: "\x1b[36m",
+  purple: "\x1b[38;2;101;68;237m",
   dim: "\x1b[2m",
   reset: "\x1b[0m",
 };
@@ -123,10 +124,48 @@ async function fetchUsage(sessionId) {
   }
 }
 
+// --- Git info ---
+function getGitInfo(cwd) {
+  if (!cwd) return null;
+  try {
+    let branch = execSync("git rev-parse --abbrev-ref HEAD", {
+      cwd,
+      stdio: ["pipe", "pipe", "pipe"],
+      timeout: 3000,
+    })
+      .toString()
+      .trim();
+    if (branch === "HEAD") {
+      branch = execSync("git rev-parse --short HEAD", {
+        cwd,
+        stdio: ["pipe", "pipe", "pipe"],
+        timeout: 3000,
+      })
+        .toString()
+        .trim();
+    }
+    const dirty = execSync("git status --porcelain --untracked-files=no", {
+      cwd,
+      stdio: ["pipe", "pipe", "pipe"],
+      timeout: 3000,
+    })
+      .toString()
+      .trim().length > 0;
+    return { branch, dirty };
+  } catch {
+    return null;
+  }
+}
+
 // --- Read stdin ---
 const chunks = [];
 for await (const chunk of process.stdin) chunks.push(chunk);
-const input = JSON.parse(Buffer.concat(chunks).toString());
+let input;
+try {
+  input = JSON.parse(Buffer.concat(chunks).toString());
+} catch {
+  input = {};
+}
 
 // --- Parse input ---
 const model = input.model?.display_name ?? "?";
@@ -134,12 +173,19 @@ const cost = input.cost?.total_cost_usd ?? 0;
 const usedPct = Math.floor(input.context_window?.used_percentage ?? 0);
 const dir = input.workspace?.current_dir ?? "";
 const sessionId = input.session_id ?? "default";
-const folder = dir ? (dir.split("/").pop() || dir.split("\\").pop()) : "";
+const folder = dir ? basename(dir) : "";
 
 // --- Line 1 ---
 const sessionCost = cost.toFixed(4);
 const folderStr = folder ? ` \u{1F4C1} ${folder}` : "";
-const line1 = `${COLORS.cyan}[${model}]${COLORS.reset}${folderStr} | ${COLORS.yellow}$${sessionCost}${COLORS.reset}`;
+const gitInfo = getGitInfo(dir);
+let gitStr = "";
+if (gitInfo) {
+  const { branch, dirty } = gitInfo;
+  const dirtyMark = dirty ? `${COLORS.purple}\u2739${COLORS.reset}` : "";
+  gitStr = ` | ${dirtyMark}${COLORS.green}${branch}${COLORS.reset}`;
+}
+const line1 = `${COLORS.cyan}[${model}]${COLORS.reset}${folderStr}${gitStr} | ${COLORS.yellow}$${sessionCost}${COLORS.reset}`;
 
 // --- Line 2 ---
 const ctxColor = colorForPct(usedPct);
