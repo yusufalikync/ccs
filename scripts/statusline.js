@@ -67,7 +67,21 @@ function getOAuthToken() {
     // fall through
   }
 
-  // 3. macOS Keychain (macOS deletes the credentials file after login)
+  // 3. Cached token file (fallback when Keychain is locked/slow)
+  const tokenCachePath = join(homedir(), ".claude", ".cached-token.json");
+  function cacheToken(token, expiresAt) {
+    try { writeFileSync(tokenCachePath, JSON.stringify({ token, expiresAt }), { mode: 0o600 }); } catch { /* best-effort */ }
+  }
+  function readCachedToken() {
+    try {
+      if (!existsSync(tokenCachePath)) return null;
+      const { token, expiresAt } = JSON.parse(readFileSync(tokenCachePath, "utf-8"));
+      const exp = typeof expiresAt === "number" ? expiresAt : expiresAt ? new Date(expiresAt).getTime() : null;
+      return token && (!exp || exp > Date.now()) ? token : null;
+    } catch { return null; }
+  }
+
+  // 4. macOS Keychain (macOS deletes the credentials file after login)
   if (process.platform === "darwin") {
     try {
       const credsJson = execSync(
@@ -79,13 +93,19 @@ function getOAuthToken() {
       const token = oauth.accessToken ?? creds.accessToken ?? null;
       const expiresAt = oauth.expiresAt ?? creds.expiresAt ?? null;
       const exp = typeof expiresAt === "number" ? expiresAt : expiresAt ? new Date(expiresAt).getTime() : null;
-      return token && (!exp || exp > Date.now()) ? token : null;
+      if (token && (!exp || exp > Date.now())) {
+        cacheToken(token, expiresAt);
+        return token;
+      }
     } catch {
-      // no keychain entry
+      // Keychain locked/timeout — try cached token
+      const cached = readCachedToken();
+      if (cached) return cached;
     }
   }
 
-  return null;
+  // 5. Cached token as last resort (Keychain failed or non-macOS)
+  return readCachedToken();
 }
 
 // --- Usage fetch + cache ---
@@ -99,13 +119,18 @@ function readCache(cachePath) {
   return null;
 }
 
+const SHARED_CACHE_PATH = join(tmpdir(), "claude_usage_cache_latest.json");
+
 async function fetchUsage(sessionId) {
   const cachePath = join(tmpdir(), `claude_usage_cache_${sessionId}.json`);
-  const cached = readCache(cachePath);
+  const cached = readCache(cachePath) ?? readCache(SHARED_CACHE_PATH);
 
   if (cached) {
-    const age = (Date.now() - statSync(cachePath).mtimeMs) / 1000;
-    if (age < CACHE_MAX_AGE) return cached;
+    try {
+      const src = existsSync(cachePath) ? cachePath : SHARED_CACHE_PATH;
+      const age = (Date.now() - statSync(src).mtimeMs) / 1000;
+      if (age < CACHE_MAX_AGE) return cached;
+    } catch { /* stat failed, proceed to fetch */ }
   }
 
   const token = getOAuthToken();
@@ -127,6 +152,7 @@ async function fetchUsage(sessionId) {
     const data = await resp.json();
     if (!data.five_hour && !data.seven_day) return cached;
     writeFileSync(cachePath, JSON.stringify(data), { mode: 0o600 });
+    try { writeFileSync(SHARED_CACHE_PATH, JSON.stringify(data), { mode: 0o600 }); } catch { /* best-effort */ }
     // Prune stale cache files older than 24h (best-effort, once per process)
     if (!_pruneDone) {
       _pruneDone = true;
@@ -134,6 +160,7 @@ async function fetchUsage(sessionId) {
         const cutoff = Date.now() - 86400 * 1000;
         for (const f of readdirSync(tmpdir())) {
           if (!f.startsWith("claude_usage_cache_") || !f.endsWith(".json")) continue;
+          if (f === "claude_usage_cache_latest.json") continue;
           const fp = join(tmpdir(), f);
           if (statSync(fp).mtimeMs < cutoff) unlinkSync(fp);
         }
