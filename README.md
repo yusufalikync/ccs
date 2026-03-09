@@ -109,7 +109,7 @@ Claude Code response
     → outputs formatted status line with progress bars
 ```
 
-The script caches API responses at `<tmpdir>/claude_usage_cache_<session_id>.json` (60-second TTL, isolated per session) to avoid hitting the API on every response.
+The script caches API responses at `<tmpdir>/claude_usage_cache_<session_id>.json` (5-minute TTL, isolated per session) to avoid hitting the API on every response.
 
 ### Credential Access
 

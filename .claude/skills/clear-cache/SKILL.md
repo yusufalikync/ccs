@@ -27,4 +27,4 @@ rm -f /tmp/claude_usage_cache_*.json
 ls /tmp/claude_usage_cache_*.json 2>/dev/null && echo "WARNING: Some files remain" || echo "All cache files cleared"
 ```
 
-Report how many files were removed and confirm the cleanup is complete. The status line will fetch fresh usage data on its next refresh cycle (within 60 seconds).
+Report how many files were removed and confirm the cleanup is complete. The status line will fetch fresh usage data on its next refresh cycle (within 5 minutes).

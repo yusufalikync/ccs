@@ -109,7 +109,7 @@ function getOAuthToken() {
 }
 
 // --- Usage fetch + cache ---
-const CACHE_MAX_AGE = 60;
+const CACHE_MAX_AGE = 300;
 let _pruneDone = false;
 
 function readCache(cachePath) {

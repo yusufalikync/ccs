@@ -85,7 +85,7 @@ Progress bars color-coded via `colorForPct()`: green (<70%), yellow (70-89%), re
 
 **Credential access**: priority order: `CLAUDE_CODE_OAUTH_TOKEN` env var → `~/.claude/.credentials.json` file (primary on Linux; present on macOS and Windows when available) → macOS Keychain (`security`, fallback since macOS deletes the file after login). Verified on macOS and Linux; Windows experimental.
 
-**Cache**: Isolated per session at `<tmpdir>/claude_usage_cache_<session_id>.json` with 60s TTL. Stale files older than 24h are pruned on each cache write. Null values have safe fallbacks (MODEL→"?", COST→0, USED_PCT→0).
+**Cache**: Isolated per session at `<tmpdir>/claude_usage_cache_<session_id>.json` with 5-min TTL. Stale files older than 24h are pruned on each cache write. Null values have safe fallbacks (MODEL→"?", COST→0, USED_PCT→0).
 
 ## Rules
 
